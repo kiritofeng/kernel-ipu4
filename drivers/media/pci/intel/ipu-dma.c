@@ -5,6 +5,7 @@
 
 #include <linux/device.h>
 #include <linux/dma-mapping.h>
+#include <linux/dma-map-ops.h>
 #include <linux/gfp.h>
 #include <linux/highmem.h>
 #include <linux/iommu.h>
@@ -201,13 +202,14 @@ static void *ipu_dma_alloc(struct device *dev, size_t size,
 			goto out_unmap;
 	}
 
-	area = __get_vm_area(size, 0, VMALLOC_START, VMALLOC_END);
+	area = get_vm_area(size, 0);
 	if (!area)
 		goto out_unmap;
 
 	area->pages = pages;
 
-	if (map_vm_area(area, PAGE_KERNEL, pages))
+  // TODO: confirm if size needs modification
+	if (map_kernel_range((unsigned long)area->addr, size, PAGE_KERNEL, pages))
 		goto out_vunmap;
 
 	*dma_handle = iova->pfn_lo << PAGE_SHIFT;
@@ -389,11 +391,7 @@ static int ipu_dma_map_sg(struct device *dev, struct scatterlist *sglist,
 		iova_addr += PAGE_ALIGN(sg->length) >> PAGE_SHIFT;
 	}
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 8, 0)
-	if (!dma_get_attr(DMA_ATTR_SKIP_CPU_SYNC, attrs))
-#else
 	if ((attrs & DMA_ATTR_SKIP_CPU_SYNC) == 0)
-#endif
 		ipu_dma_sync_sg_for_cpu(dev, sglist, nents, DMA_BIDIRECTIONAL);
 
 	mmu->tlb_invalidate(mmu);
@@ -411,11 +409,7 @@ out_fail:
  */
 static int ipu_dma_get_sgtable(struct device *dev, struct sg_table *sgt,
 			       void *cpu_addr, dma_addr_t handle, size_t size,
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 8, 0)
-			       struct dma_attrs *attrs
-#else
 			       unsigned long attrs
-#endif
 				)
 {
 	struct vm_struct *area = find_vm_area(cpu_addr);
