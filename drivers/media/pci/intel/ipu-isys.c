@@ -826,24 +826,12 @@ static void isys_remove(struct ipu_bus_device *adev)
 
 	list_for_each_entry_safe(fwmsg, safe, &isys->framebuflist, head) {
 		dma_free_attrs(&adev->dev, sizeof(struct isys_fw_msgs),
-			       fwmsg, fwmsg->dma_addr,
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 8, 0)
-			       NULL
-#else
-			       0
-#endif
-		    );
+			       fwmsg, fwmsg->dma_addr, 0);
 	}
 
 	list_for_each_entry_safe(fwmsg, safe, &isys->framebuflist_fw, head) {
 		dma_free_attrs(&adev->dev, sizeof(struct isys_fw_msgs),
-			       fwmsg, fwmsg->dma_addr,
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 8, 0)
-			       NULL
-#else
-			       0
-#endif
-		    );
+			       fwmsg, fwmsg->dma_addr, 0);
 	}
 
 	ipu_trace_uninit(&adev->dev);
@@ -863,23 +851,9 @@ static void isys_remove(struct ipu_bus_device *adev)
 
 	if (isys->short_packet_source == IPU_ISYS_SHORT_PACKET_FROM_TUNIT) {
 		u32 trace_size = IPU_ISYS_SHORT_PACKET_TRACE_BUFFER_SIZE;
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 8, 0)
-		struct dma_attrs attrs;
-
-		init_dma_attrs(&attrs);
-		dma_set_attr(DMA_ATTR_NON_CONSISTENT, &attrs);
 		dma_free_attrs(&adev->dev, trace_size,
 			       isys->short_packet_trace_buffer,
-			       isys->short_packet_trace_buffer_dma_addr,
-			       &attrs);
-#else
-		unsigned long attrs;
-
-		attrs = DMA_ATTR_NON_CONSISTENT;
-		dma_free_attrs(&adev->dev, trace_size,
-			       isys->short_packet_trace_buffer,
-			       isys->short_packet_trace_buffer_dma_addr, attrs);
-#endif
+			       isys->short_packet_trace_buffer_dma_addr, 0);
 	}
 }
 
@@ -1044,11 +1018,6 @@ static int isys_probe(struct ipu_bus_device *adev)
 #if defined(CONFIG_VIDEO_INTEL_IPU4) || defined(CONFIG_VIDEO_INTEL_IPU4P)
 	const u32 trace_size = IPU_ISYS_SHORT_PACKET_TRACE_BUFFER_SIZE;
 	dma_addr_t *trace_dma_addr;
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 8, 0)
-	struct dma_attrs attrs;
-#else
-	unsigned long attrs;
-#endif
 #endif
 	const struct firmware *uninitialized_var(fw);
 	int rval = 0;
@@ -1070,18 +1039,9 @@ static int isys_probe(struct ipu_bus_device *adev)
 	isys->short_packet_source = IPU_ISYS_SHORT_PACKET_FROM_TUNIT;
 	trace_dma_addr = &isys->short_packet_trace_buffer_dma_addr;
 	mutex_init(&isys->short_packet_tracing_mutex);
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 8, 0)
-	init_dma_attrs(&attrs);
-	dma_set_attr(DMA_ATTR_NON_CONSISTENT, &attrs);
 	isys->short_packet_trace_buffer =
 	    dma_alloc_attrs(&adev->dev, trace_size, trace_dma_addr,
-			    GFP_KERNEL, &attrs);
-#else
-	attrs = DMA_ATTR_NON_CONSISTENT;
-	isys->short_packet_trace_buffer =
-	    dma_alloc_attrs(&adev->dev, trace_size, trace_dma_addr,
-			    GFP_KERNEL, attrs);
-#endif
+			    GFP_KERNEL, 0);
 	if (!isys->short_packet_trace_buffer)
 		return -ENOMEM;
 #else
@@ -1179,12 +1139,7 @@ release_firmware:
 #if defined(CONFIG_VIDEO_INTEL_IPU4) || defined(CONFIG_VIDEO_INTEL_IPU4P)
 		dma_free_attrs(&adev->dev, trace_size,
 			       isys->short_packet_trace_buffer,
-			       isys->short_packet_trace_buffer_dma_addr,
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 8, 0)
-			       &attrs);
-#else
-			       attrs);
-#endif
+			       isys->short_packet_trace_buffer_dma_addr, 0);
 #endif
 	}
 

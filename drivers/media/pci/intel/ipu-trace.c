@@ -198,7 +198,7 @@ static void __ipu_trace_restore(struct device *dev)
 		    dma_alloc_attrs(dev, MEMORY_RING_BUFFER_SIZE +
 				    MEMORY_RING_BUFFER_GUARD,
 				    &sys->memory.dma_handle,
-				    GFP_KERNEL, DMA_ATTR_NON_CONSISTENT);
+				    GFP_KERNEL, 0);
 	}
 
 	if (!sys->memory.memory_buffer) {
@@ -849,7 +849,7 @@ void ipu_trace_uninit(struct device *dev)
 			       MEMORY_RING_BUFFER_SIZE +
 			       MEMORY_RING_BUFFER_GUARD,
 			       sys->memory.memory_buffer,
-			       sys->memory.dma_handle, DMA_ATTR_NON_CONSISTENT);
+			       sys->memory.dma_handle, 0);
 
 	sys->dev = NULL;
 	sys->memory.memory_buffer = NULL;
