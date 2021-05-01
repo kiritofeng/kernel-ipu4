@@ -474,8 +474,10 @@ static int ipu_mmu_map(struct iommu_domain *domain, unsigned long iova,
 	return l2_map(domain, iova_start, paddr, size);
 }
 
+// TODO: is `gather` actually useful?
 static size_t l2_unmap(struct iommu_domain *domain, unsigned long iova,
-		       phys_addr_t dummy, size_t size)
+		       phys_addr_t dummy, size_t size,
+           struct iommu_iotlb_gather *iotlb_gather)
 {
 	struct ipu_mmu_domain *adom = to_ipu_mmu_domain(domain);
 	u32 l1_idx = iova >> ISP_L1PT_SHIFT;
@@ -512,9 +514,10 @@ static size_t l2_unmap(struct iommu_domain *domain, unsigned long iova,
 }
 
 static size_t ipu_mmu_unmap(struct iommu_domain *domain,
-			    unsigned long iova, size_t size, gfp_t gfp)
+			    unsigned long iova, size_t size,
+          struct iommu_iotlb_gather *iotlb_gather)
 {
-	return l2_unmap(domain, iova, 0, size);
+	return l2_unmap(domain, iova, 0, size, iotlb_gather);
 }
 
 static phys_addr_t ipu_mmu_iova_to_phys(struct iommu_domain *domain,
@@ -711,7 +714,7 @@ static void set_mapping(struct ipu_mmu *mmu, struct ipu_dma_mapping *dmap)
 	pm_runtime_put(mmu->dev);
 }
 
-static int ipu_mmu_add_device(struct device *dev)
+static int ipu_mmu_probe_device(struct device *dev)
 {
 	struct device *aiommu = to_ipu_bus_device(dev)->iommu;
 	struct ipu_dma_mapping *dmap;
