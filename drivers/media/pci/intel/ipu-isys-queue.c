@@ -1278,8 +1278,7 @@ ipu_isys_queue_short_packet_ready(struct ipu_isys_pipeline *ip,
 	spin_unlock_irqrestore(&ip->short_packet_queue_lock, flags);
 }
 
-void ipu_isys_req_free(struct media_device *mdev,
-		       struct media_device_request *req)
+void ipu_isys_req_free(struct media_request *req)
 {
 	struct ipu_isys_request *ireq = to_ipu_isys_request(req);
 
@@ -1367,10 +1366,9 @@ ipu_isys_req_dispatch(struct media_device *mdev,
 	WARN_ON(rval);
 }
 
-int ipu_isys_req_queue(struct media_device *mdev,
-		       struct media_device_request *req)
+int ipu_isys_req_queue(struct media_request *req)
 {
-	struct ipu_isys *isys = container_of(mdev, struct ipu_isys, media_dev);
+	struct ipu_isys *isys = container_of(req->mdev, struct ipu_isys, media_dev);
 	struct ipu_isys_request *ireq = to_ipu_isys_request(req);
 	struct ipu_isys_pipeline *ip;
 	struct ipu_isys_buffer *ib;
@@ -1393,11 +1391,7 @@ int ipu_isys_req_queue(struct media_device *mdev,
 		struct ipu_isys_video *av = ipu_isys_queue_to_video(aq);
 
 		dev_dbg(&isys->adev->dev, "%s: device %s, id %u\n", __func__,
-			av->vdev.name, vb->
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 4, 0)
-			v4l2_buf.
-#endif
-			index);
+			av->vdev.name, vb->index);
 		if (!pipe) {
 			if (!av->vdev.entity.pipe) {
 				no_pipe = true;
@@ -1447,13 +1441,13 @@ int ipu_isys_req_queue(struct media_device *mdev,
 
 		dev_dbg(&isys->adev->dev,
 			"request has a pipeline, dispatching\n");
-		rval = ipu_isys_req_prepare(mdev, ireq, ip, set);
+		rval = ipu_isys_req_prepare(req->mdev, ireq, ip, set);
 		if (rval)
 			goto out_mutex_unlock;
 
 		ipu_fw_isys_dump_frame_buff_set(&isys->adev->dev, set,
 						ip->nr_output_pins);
-		ipu_isys_req_dispatch(mdev, ireq, ip, set, to_dma_addr(msg));
+		ipu_isys_req_dispatch(req->mdev, ireq, ip, set, to_dma_addr(msg));
 	} else {
 		dev_dbg(&isys->adev->dev,
 			"%s: adding request %u to the mdev queue\n", __func__,

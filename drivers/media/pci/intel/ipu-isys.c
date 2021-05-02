@@ -637,11 +637,7 @@ fail:
 }
 
 static struct media_device_ops isys_mdev_ops = {
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 6, 0)
-	.link_notify = ipu_pipeline_link_notify,
-#else
 	.link_notify = v4l2_pipeline_link_notify,
-#endif
 	.req_alloc = ipu_isys_req_alloc,
 	.req_free = ipu_isys_req_free,
 	.req_queue = ipu_isys_req_queue,
