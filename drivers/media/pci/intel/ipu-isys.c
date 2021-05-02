@@ -740,7 +740,7 @@ static int isys_runtime_pm_resume(struct device *dev)
 
 	ipu_trace_restore(dev);
 
-	pm_qos_update_request(&isys->pm_qos, ISYS_PM_QOS_VALUE);
+	cpu_latency_qos_update_request(&isys->pm_qos, ISYS_PM_QOS_VALUE);
 
 	ret = ipu_buttress_start_tsc_sync(isp);
 	if (ret)
@@ -780,7 +780,7 @@ static int isys_runtime_pm_suspend(struct device *dev)
 	isys->reset_needed = false;
 	mutex_unlock(&isys->mutex);
 
-	pm_qos_update_request(&isys->pm_qos, PM_QOS_DEFAULT_VALUE);
+	cpu_latency_qos_update_request(&isys->pm_qos, PM_QOS_DEFAULT_VALUE);
 
 	return 0;
 }
@@ -836,7 +836,7 @@ static void isys_remove(struct ipu_bus_device *adev)
 
 	ipu_trace_uninit(&adev->dev);
 	isys_unregister_devices(isys);
-	pm_qos_remove_request(&isys->pm_qos);
+	cpu_latency_qos_remove_request(&isys->pm_qos);
 
 	if (!isp->secure_mode) {
 		ipu_cpd_free_pkg_dir(adev, isys->pkg_dir,
@@ -1102,8 +1102,7 @@ static int isys_probe(struct ipu_bus_device *adev)
 	ipu_trace_init(adev->isp, isys->pdata->base, &adev->dev,
 		       isys_trace_blocks);
 
-	pm_qos_add_request(&isys->pm_qos, PM_QOS_CPU_DMA_LATENCY,
-			   PM_QOS_DEFAULT_VALUE);
+	cpu_latency_qos_add_request(&isys->pm_qos, PM_QOS_DEFAULT_VALUE);
 	alloc_fw_msg_buffers(isys, 20);
 
 	pm_runtime_allow(&adev->dev);
