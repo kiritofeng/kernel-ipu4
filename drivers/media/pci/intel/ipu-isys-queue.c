@@ -1366,7 +1366,7 @@ ipu_isys_req_dispatch(struct media_device *mdev,
 	WARN_ON(rval);
 }
 
-int ipu_isys_req_queue(struct media_request *req)
+void ipu_isys_req_queue(struct media_request *req)
 {
 	struct ipu_isys *isys = container_of(req->mdev, struct ipu_isys, media_dev);
 	struct ipu_isys_request *ireq = to_ipu_isys_request(req);
@@ -1459,12 +1459,12 @@ int ipu_isys_req_queue(struct media_request *req)
 out_mutex_unlock:
 	mutex_unlock(&isys->stream_mutex);
 
-	return rval;
+	return;
 
 out_list_empty:
 	spin_unlock_irqrestore(&ireq->lock, flags);
 
-	return rval;
+	return;
 }
 
 struct vb2_ops ipu_isys_queue_ops = {

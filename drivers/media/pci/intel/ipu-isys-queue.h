@@ -164,7 +164,7 @@ int ipu_isys_req_prepare(struct media_device *mdev,
 			 struct ipu_isys_request *ireq,
 			 struct ipu_isys_pipeline *ip,
 			 struct ipu_fw_isys_frame_buff_set_abi *set);
-int ipu_isys_req_queue(struct media_request *req);
+void ipu_isys_req_queue(struct media_request *req);
 
 int ipu_isys_queue_init(struct ipu_isys_queue *aq);
 void ipu_isys_queue_cleanup(struct ipu_isys_queue *aq);
