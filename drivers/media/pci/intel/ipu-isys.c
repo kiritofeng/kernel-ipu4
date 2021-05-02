@@ -1019,7 +1019,7 @@ static int isys_probe(struct ipu_bus_device *adev)
 	const u32 trace_size = IPU_ISYS_SHORT_PACKET_TRACE_BUFFER_SIZE;
 	dma_addr_t *trace_dma_addr;
 #endif
-	const struct firmware *uninitialized_var(fw);
+	const struct firmware *fw = NULL /* GCC */;
 	int rval = 0;
 
 	trace_printk("B|%d|TMWK\n", current->pid);
